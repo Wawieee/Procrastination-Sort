@@ -2,11 +2,7 @@
 
 **“Why do it now… when you can panic later?”**
 
-Procrastination Sort is a highly relatable (but terribly inefficient) sorting algorithm inspired by real human behavior.
-
-Instead of sorting immediately, it delays progress, pretends to work, and only becomes productive when the pressure is high enough.
-
----
+**For dependencies: You just need the visualization lib from python, "matplolib"**
 
 ## How it Works
 
@@ -15,7 +11,6 @@ This algorithm operates in three phases:
 ### 🔴 Phase 1: Procrastination
 
 Does absolutely nothing.
-Just vibes. Maybe scrolls a bit. Thinks about starting… but doesn’t.
 
 ---
 
@@ -50,3 +45,6 @@ Deadline hits. Survival instincts activate.
 ### Overall:
 
 **O(n²)** — dominated by the final panic sorting phase.
+
+
+### PS. This is basically just a delayed bubble sort. Made just for funsies.
