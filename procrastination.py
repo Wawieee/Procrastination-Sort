@@ -4,14 +4,12 @@ import matplotlib.animation as animation
 import matplotlib.patches as mpatches
 from matplotlib.gridspec import GridSpec
 
-# ── Setup ──────────────────────────────────────────────────────────────────────
 N = 15
 MAX_STEPS = 80
 INTERVAL = 220  # ms between frames
 
 arr = [random.randint(3, 50) for _ in range(N)]
 
-# ── Color palette ──────────────────────────────────────────────────────────────
 BG        = "#0d0d14"
 PROC_TOP  = "#ff4060"
 FAKE_TOP  = "#ffd040"
@@ -36,7 +34,6 @@ MOOD_LABELS = {
     "done":            "Sorted! Crisis averted... barely",
 }
 
-# ── Figure layout ──────────────────────────────────────────────────────────────
 fig = plt.figure(figsize=(11, 6.5), facecolor=BG)
 fig.patch.set_facecolor(BG)
 
@@ -58,7 +55,6 @@ for ax in [ax_bars, ax_prog, ax_steps, ax_swaps, ax_phase]:
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-# ── Title block ────────────────────────────────────────────────────────────────
 fig.text(0.06, 0.978, "Procrastination Sort",
          color=TEXT_HI, fontsize=17, fontweight="bold", va="top")
 
@@ -74,7 +70,6 @@ mood_text = fig.text(0.97, 0.975, "Idle",
                      color=TEXT_DIM, fontsize=10, va="top", ha="right",
                      fontfamily="monospace")
 
-# ── Progress bar ───────────────────────────────────────────────────────────────
 ax_prog.set_xlim(0, MAX_STEPS)
 ax_prog.set_ylim(0, 1)
 ax_prog.axvspan(0,             MAX_STEPS*0.5, color=PROC_TOP,  alpha=0.18)
@@ -88,7 +83,6 @@ ax_prog.text(MAX_STEPS*0.65, 0.5, "fake work",     color=TEXT_DIM,
 ax_prog.text(MAX_STEPS*0.9,  0.5, "panic",         color=TEXT_DIM,
              fontsize=7, ha="center", va="center", fontfamily="monospace")
 
-# ── Bars ───────────────────────────────────────────────────────────────────────
 ax_bars.set_xlim(-0.5, N - 0.5)
 ax_bars.set_ylim(0, 58)
 
@@ -103,7 +97,6 @@ step_label = ax_bars.text(N - 0.5, 55, "step 0",
 mood_label = ax_bars.text(0, 55, MOOD_LABELS["procrastinating"],
                            color=PROC_TOP, fontsize=9, ha="left")
 
-# ── Stat panels ────────────────────────────────────────────────────────────────
 def stat_panel(ax, label, init="0"):
     rect = mpatches.FancyBboxPatch((0.02, 0.05), 0.96, 0.9,
                                    boxstyle="round,pad=0.02",
@@ -126,7 +119,6 @@ val_phase.set_fontsize(13)
 val_phase.set_color(TEXT_MED)
 val_phase.set_text("—")
 
-# ── Generator ──────────────────────────────────────────────────────────────────
 def procrastination_sort_steps(a):
     n = len(a)
     s = 0
@@ -151,7 +143,6 @@ def procrastination_sort_steps(a):
                         yield list(a), j, mood, s, True
         s += 1
 
-# ── State ──────────────────────────────────────────────────────────────────────
 state = {"steps": 0, "swaps": 0}
 
 PHASE_NAMES = {
@@ -161,7 +152,6 @@ PHASE_NAMES = {
     "done":            "Done",
 }
 
-# ── Update ─────────────────────────────────────────────────────────────────────
 def update(frame):
     values, active_idx, mood, step_num, swapped = frame
 
@@ -189,7 +179,6 @@ def update(frame):
     val_swaps.set_text(str(state["swaps"]))
     val_phase.set_text(PHASE_NAMES.get(mood, "—"))
 
-# ── Animate ────────────────────────────────────────────────────────────────────
 gen = procrastination_sort_steps(arr)
 
 ani = animation.FuncAnimation(
