@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Procrastination Sort</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #08080f;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .card {
+    background: #0d0d14;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 28px 28px 24px;
+    width: 100%;
+    max-width:445px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(120,80,255,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .title {
+    font-family: 'Space Mono', monospace;
+    font-size: 21px;
+    font-weight: 800;
+    color: #e8e4ff;
+    letter-spacing: -0.4px;
+  }
+
+  .complexity-sub {
+    font-family: 'Calibri', monospace;
+    font-size: 15px;
+    color: #ffffff;
+    margin-top: 4px;
+  }
+
+  .mood-badge {
+    font-family: 'Calibri', monospace;
+    font-size: 12px;
+    padding: 2px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.35s ease;
+    white-space: nowrap;
+  }
+  .mood-procrastinating { background: rgba(255,64,96,0.15);  color: #ff8099; border: 1px solid rgba(255,64,96,0.3); }
+  .mood-fake_work       { background: rgba(255,208,64,0.15); color: #ffd966; border: 1px solid rgba(255,208,64,0.3); }
+  .mood-panic           { background: rgba(64,255,170,0.15); color: #5effa8; border: 1px solid rgba(64,255,170,0.3); }
+  .mood-done            { background: rgba(96,128,255,0.15); color: #a0b0ff; border: 1px solid rgba(96,128,255,0.3); }
+
+  /* ── Phase marker strip ── */
+  .phase-strip {
+    display: flex;
+    height: 4px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 14px 0 6px;
+  }
+  .ph { flex: 1; }
+  .ph1 { background: rgba(255,64,96,0.35); }
+  .ph2 { background: rgba(255,208,64,0.35); }
+  .ph3 { background: rgba(64,255,170,0.35); }
+
+  /* ── Progress bar ── */
+  .prog-track {
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.25s ease, background 0.4s ease;
+  }
+
+  .phase-labels {
+    display: flex;
+    margin-bottom: 16px;
+  }
+  .phase-lbl {
+    font-family: 'Calibri', monospace;
+    font-size: 10px;
+    color: #d6d6d6;
+    text-align: center;
+  }
+  .phase-lbl:nth-child(1) { flex: 5; }
+  .phase-lbl:nth-child(2) { flex: 3; }
+  .phase-lbl:nth-child(3) { flex: 2; }
+
+  /* ── Mood label ── */
+  .mood-label {
+    font-family: 'Calibri', monospace;
+    font-size: 13px;
+    color: #e8e4ff;
+    margin-bottom: 10px;
+    min-height: 18px;
+    transition: color 0.3s;
+  }
+
+  /* ── Bars ── */
+  .bars-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 220px;
+    margin-bottom: 16px;
+  }
+
+  .bar-wrap {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 4px 4px 2px 2px;
+    transition: height 0.22s cubic-bezier(0.34,1.4,0.64,1), background-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .bar.proc  { background: linear-gradient(to top, #b01030, #ff4060); box-shadow: 0 0 6px rgba(255,60,90,0.25); }
+  .bar.fake  { background: linear-gradient(to top, #b07800, #ffd040); box-shadow: 0 0 6px rgba(255,200,50,0.25); }
+  .bar.panic { background: linear-gradient(to top, #009955, #40ffaa); box-shadow: 0 0 6px rgba(50,220,130,0.25); }
+  .bar.done  { background: linear-gradient(to top, #2255aa, #6080ff); box-shadow: 0 0 5px rgba(100,130,255,0.2); }
+  .bar.active {
+    background: linear-gradient(to top, #4040cc, #a090ff) !important;
+    box-shadow: 0 0 18px rgba(160,144,255,0.6) !important;
+    transform: scaleX(1.1);
+  }
+
+  /* ── Stat panels ── */
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .stat {
+    flex: 1;
+    background: #13131f;
+    border: 1px solid #222233;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .stat-label {
+    font-family: 'Calibri', monospace;
+    font-size: 8px;
+    color: #555566;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .stat-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e8e4ff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-val.sm {
+    font-size: 14px;
+    padding-top: 5px;
+    color: #aaaacc;
+  }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 11px 0;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    letter-spacing: 0.3px;
+    transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-play {
+    background: rgba(120,100,255,0.2);
+    color: #c0b0ff;
+    border: 1px solid rgba(120,100,255,0.4);
+  }
+  .btn-play:hover { background: rgba(120,100,255,0.35); }
+
+  .btn-reset {
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.09);
+    max-width: 100px;
+  }
+  .btn-reset:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75); }
+
+  /* ── Caption ── */
+  .caption {
+    text-align: center;
+    font-size: 14px;
+    font-style: italic;
+    color: #aaaacc;
+    margin-top: 14px;
+    letter-spacing: 0.2px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <div>
+      <div class="title">Procrastination Sort</div>
+      <div class="complexity-sub">Time complexity: O(n… eventually)</div>
+    </div>
+    <div class="mood-badge mood-procrastinating" id="moodBadge">Idle</div>
+  </div>
+
+  <div class="phase-strip">
+    <div class="ph ph1"></div><div class="ph ph1"></div>
+    <div class="ph ph1"></div><div class="ph ph1"></div>
+    <div class="ph ph2"></div><div class="ph ph2"></div>
+    <div class="ph ph2"></div><div class="ph ph3"></div>
+    <div class="ph ph3"></div><div class="ph ph3"></div>
+  </div>
+
+  <div class="prog-track">
+    <div class="prog-fill" id="progFill"></div>
+  </div>
+
+  <div class="phase-labels">
+    <span class="phase-lbl">procrastinate</span>
+    <span class="phase-lbl">fake work</span>
+    <span class="phase-lbl">panic</span>
+  </div>
+
+  <div class="mood-label" id="moodLabel">Doing absolutely nothing</div>
+
+  <div class="bars-area" id="barsArea"></div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Steps</div>
+      <div class="stat-val" id="statSteps">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Complexity</div>
+      <div class="stat-val sm" id="statComplexity">O(1)</div>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-play" id="playBtn" onclick="togglePlay()">▶ Play</button>
+    <button class="btn btn-reset" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div class="caption">Why do it now… when you can do it faster later?</div>
+</div>
+
+<script>
+  const N = 15, MAX_STEPS = 80, INTERVAL = 260;
+
+  const MOOD_COLORS = {
+    procrastinating: '#ff4060',
+    fake_work:       '#ffd040',
+    panic:           '#40ffaa',
+    done:            '#6080ff',
+  };
+  const MOOD_LABELS = {
+    procrastinating: 'Doing absolutely nothing',
+    fake_work:       'Looks busy but still does nothing',
+    panic:           '"Hapit na ang deadline..."',
+    done:            'Boom! Clutched!😎 (pero bagsak japon HAHA)',
+  };
+  const PHASE_NAMES = {
+    procrastinating: 'Avoid',
+    fake_work:       'Fake',
+    panic:           'Panic',
+    done:            'Done',
+  };
+  const PHASE_COMPLEXITY = {
+    procrastinating: 'O(1)',
+    fake_work:       'O(n²)',
+    panic:           'O(n²)',
+    done:            'O(n²)',
+  };
+  const MOOD_CLASS = {
+    procrastinating: 'proc',
+    fake_work:       'fake',
+    panic:           'panic',
+    done:            'done',
+  };
+
+  function rng(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+  let arr, allFrames, fIdx, timer, running = false, done = false;
+
+  function buildFrames(a) {
+    const frames = [];
+    const b = [...a];
+    let s = 0, steps = 0, swaps = 0;
+    const n = b.length;
+    while (s < MAX_STEPS) {
+      const ratio = s / MAX_STEPS;
+      const mood = ratio < 0.5 ? 'procrastinating' : ratio < 0.8 ? 'fake_work' : 'panic';
+      steps++;
+      frames.push({ arr: [...b], active: -1, mood, step: s, steps, swaps });
+      if (mood === 'procrastinating') { s++; continue; }
+      if (mood === 'fake_work') {
+        const i = rng(0, n - 2), j = rng(0, n - 2);
+        [b[i], b[j]] = [b[j], b[i]];
+        swaps++; steps++;
+        frames.push({ arr: [...b], active: i, mood, step: s, steps, swaps });
+      } else {
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - 1; j++) {
+            if (b[j] > b[j + 1]) {
+              [b[j], b[j + 1]] = [b[j + 1], b[j]];
+              swaps++; steps++;
+              frames.push({ arr: [...b], active: j, mood, step: s, steps, swaps });
+            }
+          }
+        }
+      }
+      s++;
+    }
+    frames.push({ arr: [...b], active: -1, mood: 'done', step: MAX_STEPS, steps, swaps });
+    return frames;
+  }
+
+  function initArr() { arr = Array.from({ length: N }, () => rng(3, 50)); }
+
+  function buildBars() {
+    const area = document.getElementById('barsArea');
+    area.innerHTML = '';
+    const mx = Math.max(...arr);
+    arr.forEach((v, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'bar proc';
+      bar.id = 'bar' + i;
+      bar.style.height = Math.round(v / mx * 204) + 'px';
+      wrap.appendChild(bar);
+      area.appendChild(wrap);
+    });
+  }
+
+  function renderFrame(f) {
+    const mx = Math.max(...f.arr);
+    const cls = MOOD_CLASS[f.mood] || 'proc';
+    f.arr.forEach((v, i) => {
+      const bar = document.getElementById('bar' + i);
+      if (!bar) return;
+      bar.style.height = Math.round(v / mx * 204) + 'px';
+      bar.className = 'bar ' + (i === f.active ? 'active' : cls);
+    });
+
+    const color = MOOD_COLORS[f.mood];
+    document.getElementById('progFill').style.width = ((f.step + 1) / MAX_STEPS * 100) + '%';
+    document.getElementById('progFill').style.background = color;
+
+    const badge = document.getElementById('moodBadge');
+    badge.textContent = f.mood.replace('_', ' ').toUpperCase();
+    badge.className = 'mood-badge mood-' + f.mood;
+
+    document.getElementById('moodLabel').textContent = MOOD_LABELS[f.mood];
+    document.getElementById('statSteps').textContent = f.steps;
+    document.getElementById('statComplexity').textContent = PHASE_COMPLEXITY[f.mood] || 'O(?)';
+    document.getElementById('statPhase').textContent = PHASE_NAMES[f.mood] || '—';
+  }
+
+  function step() {
+    if (fIdx >= allFrames.length) { stop(); return; }
+    renderFrame(allFrames[fIdx++]);
+    if (fIdx >= allFrames.length) stop();
+  }
+
+  function stop() {
+    clearInterval(timer);
+    running = false;
+    done = true;
+    renderFrame(allFrames[allFrames.length - 1]);
+    document.getElementById('playBtn').textContent = '↺ Again';
+  }
+
+  function togglePlay() {
+    if (done) { resetAll(); return; }
+    if (running) {
+      clearInterval(timer);
+      running = false;
+      document.getElementById('playBtn').textContent = '▶ Resume';
+    } else {
+      running = true;
+      document.getElementById('playBtn').textContent = '⏸ Pause';
+      timer = setInterval(step, INTERVAL);
+    }
+  }
+
+  function resetAll() {
+    clearInterval(timer);
+    running = false;
+    done = false;
+    fIdx = 0;
+    initArr();
+    allFrames = buildFrames([...arr]);
+    buildBars();
+    document.getElementById('playBtn').textContent = '▶ Play';
+    document.getElementById('moodBadge').textContent = 'Idle';
+    document.getElementById('moodBadge').className = 'mood-badge mood-procrastinating';
+    document.getElementById('moodLabel').textContent = 'Doing absolutely nothing';
+    document.getElementById('progFill').style.width = '0%';
+    document.getElementById('statSteps').textContent = '0';
+    document.getElementById('statComplexity').textContent = 'O(1)';
+    document.getElementById('statPhase').textContent = '—';
+  }
+
+  document.addEventListener('keydown', function (e) {
+    // prevent page scrolling when pressing space
+    if (e.code === 'Space') {
+      e.preventDefault();
+      togglePlay(); 
+    }
+  });
+
+  resetAll();
+</script>
+</body>
+</html>
