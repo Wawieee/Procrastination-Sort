@@ -1,4 +1,4 @@
-# 😴 Procrastination Sort
+# Procrastination Sort
 
 **“Why do it now… when you can panic later?”**
 
@@ -8,7 +8,7 @@ Instead of sorting immediately, it delays progress, pretends to work, and only b
 
 ---
 
-## 🧠 How it Works
+## How it Works
 
 This algorithm operates in three phases:
 
@@ -39,7 +39,7 @@ Deadline hits. Survival instincts activate.
 
 ---
 
-## ⏱️ Time Complexity
+## Time Complexity
 
 | Phase           | Complexity                   |
 | --------------- | ---------------------------- |
@@ -47,36 +47,6 @@ Deadline hits. Survival instincts activate.
 | Fake Work       | O(n) to O(n²)                |
 | Panic Mode      | O(n²)                        |
 
-### 👉 Overall:
+### Overall:
 
 **O(n²)** — dominated by the final panic sorting phase.
-
----
-
-## 😂 Why This Exists
-
-Because sometimes the most accurate model of an algorithm… is human behavior.
-
----
-
-## 📌 Tagline
-
-> *“Ignores the problem until panic solves it.”*
-
----
-
-## 🚀 Notes
-
-* Not recommended for production use (unless you thrive under pressure)
-* Highly consistent with student and developer behavior
-* Surprisingly effective… eventually
-
----
-
-## 💡 Future Improvements
-
-* Add “deadline proximity” as a parameter
-* Adaptive panic intensity
-* Integrate caffeine-based optimization ☕
-
----
